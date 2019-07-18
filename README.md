@@ -59,7 +59,7 @@
 |获取一篇博客的内容| /api/blog/detail | id|    |     
 |新增一篇博客| /api/blog/new | post |      | post中有新增的数据|   
 |更新一篇博客| /api/blog/update | post| id   | post的报文体中有更新的数据|   
-|删除一篇博客| /api/blog/del | detele | id  |    |    
+|删除一篇博客| /api/blog/delete | delete | id  |    |    
 |注册 | /api/user/register  | post|     | post的报文体中有注册用户的数据|  
 |登录 | /api/user/login | post|  | post的报文体中有登录用户的数据|   
 |注销| /api/user/delete | get |   | 注销的用户|    

@@ -32,7 +32,7 @@ const handleBlogRouter = (req, res) => {
   }
 
   // 删除一篇博客
-  if (method === 'DETELE' && path === '/api/blog/detele') {
+  if (method === 'DELETE' && path === '/api/blog/delete') {
     return {
       msg: '这是删除博客的接口'
     }

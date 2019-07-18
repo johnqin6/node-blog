@@ -17,6 +17,9 @@ const serveHandle = (req, res) => {
   if (userData) {
     res.end(JSON.stringify(userData))
   }
+
+  // 未命中路由，返回404
+  res.end("404 NOT Found\n")
 }
 
 module.exports = serveHandle

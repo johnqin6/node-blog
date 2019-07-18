@@ -18,7 +18,7 @@ const handleUserRouter = (req, res) => {
   }
 
    // 注销用户
-   if (method === 'DELETE' && path === '/api/user/logout') {
+   if (method === 'DELETE' && path === '/api/user/delete') {
     return {
       msg: '这是注销用户的接口'
     }
