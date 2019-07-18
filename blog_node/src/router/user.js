@@ -1,25 +1,37 @@
+const { register, login, deleteUser } = require('../controller/user')
+const { SuccessModel, ErrorModel } = require('../model/resModel')
+
 const handleUserRouter = (req, res) => {
   const method = req.method
+  const id = req.query.id
 
   // 注册
   if (method === 'POST' && req.path === '/api/user/register') {
-    return {
-      msg: '这是注册的接口'
-    }
+    const result = register(req.body)
+    if (result) {
+      return new SuccessModel()
+    } 
+    return new ErrorModel('注册失败！')
   }
 
   // 登录
   if (method === 'POST' && req.path === '/api/user/login') {
-    return {
-      msg: '这是登录的接口'
-    }
+    console.log(req.body)
+    const { username, password } = req.body 
+    const result = login(username, password)
+    if (result) {
+      return new SuccessModel()
+    } 
+    return new ErrorModel('登录失败！')
   }
 
    // 注销用户
    if (method === 'DELETE' && req.path === '/api/user/delete') {
-    return {
-      msg: '这是注销用户的接口'
-    }
+    const result = deleteUser(id)
+    if (result) {
+      return new SuccessModel()
+    } 
+    return new ErrorModel('删除用户失败！')
   }
 }
 
