@@ -62,7 +62,7 @@
 |删除一篇博客| /api/blog/del | detele | id  |    |    
 |注册 | /api/user/register  | post|     | post的报文体中有注册用户的数据|  
 |登录 | /api/user/login | post|  | post的报文体中有登录用户的数据|   
-|注销| /api/user/logout | get |   | 注销的用户|    
+|注销| /api/user/delete | get |   | 注销的用户|    
 
 
 ### 知识点  
