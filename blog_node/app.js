@@ -6,6 +6,9 @@ const serveHandle = (req, res) => {
   res.setHeader('Content-type', 'application/json')
   // process.env.NODE_ENV
   
+  // 获取path
+  const url = req.url
+  req.path = url.split('?')[0]
   // 处理blog路由
   const blogData = handleBlogRouter(req, res)
   if (blogData) {

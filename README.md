@@ -63,6 +63,7 @@
 |注册 | /api/user/register  | post|     | post的报文体中有注册用户的数据|  
 |登录 | /api/user/login | post|  | post的报文体中有登录用户的数据|   
 |注销| /api/user/delete | get |   | 注销的用户|    
+|更新用户信息| /api/user/update| post |  | 更新用户信息 |  
 
 
 ### 知识点  
