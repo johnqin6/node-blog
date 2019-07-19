@@ -1,26 +1,22 @@
+const { exec } = require('../db/mysql')
 /**
  * 获取博客列表
  * @param {String} author 作者
  * @param {String} keyword 关键词
  */
 const getList = (author, keyword) => {
-  // 先返回假数据 （格式是正确的）
-  return [
-    {
-      id: 1,
-      title: '标题A',
-      content: '内容A',
-      createOn: 1563453817252,
-      author: 'zhangsan'
-    },
-    {
-      id: 2,
-      title: '标题B',
-      content: '内容B',
-      createOn: 1563453882105,
-      author: 'lisi'
-    },
-  ]
+  // 1=1 是为占位，防止 author和keyword都没有值而报错, 即 where 后边无值
+  let sql = 'select * from blogs where 1=1 '
+  if (author) {
+    sql += `and author='${author}' `
+  }
+  if (keyword) {
+    sql += `and title like '%${keyword}%' `
+  }
+  sql += `order by createOn desc;`
+
+  // 返回 promise
+  return exec(sql)
 }
 
 /**
