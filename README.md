@@ -150,7 +150,7 @@ const getCookieExpires = () => {
 - 断电不能丢失，必须保留
 - 数据量太大，内存成本太高
 
-session的使用
+#### session的使用
 
 ```javascript
 // session 数据
@@ -185,6 +185,30 @@ const SESSION_DATA = {}
   }
 ```
 
+#### redis在node.js中的使用
+
+```javascript
+const redis = require('redis')
+
+// 创建客户端
+const redisClient = redis.createClient(6379, '127.0.0.1')
+redisClient.on('error', err => {
+  console.error(err)
+})
+
+// 测试
+redisClient.set('myname', 'zhangsan', redis.print)
+redisClient.get('myname', (err, val) => {
+  if (err) {
+    console.log(err)
+    return
+  }
+  console.log('val: ', val)
+  // 退出
+  redisClient.quit()
+})
+```
+
 ## mysql操作的注意点
 操作数据库时一般不会真正删除数据，而是使用软删除，将该记录state设置为0 
 ```sql
@@ -194,4 +218,34 @@ update users set state='0' where username='lisi';
 SELECT * FROM users WHERE state='1';
 ```
 
+## 和前端联调
+- 登录功能依赖cookie, 必须用浏览器来联调
+- cookie跨域不共享，前端和server端必须同域
+- 需要用到nignx做代理，让前后端同域
+
+### nginx 介绍
+- 高性能的web服务器, 开源免费
+- 一般用于做静态服务，负载均衡
+- 反向代理
+
+#### nginx 命令
+- 测试配置文件格式是否正确 nginx -t
+- 启动 nginx; 重启 nginx -s reload   或  tasklist /fi "imagename eq nginx.exe"
+- 停止 nginx -s stop  或 taskkill /F /IM nginx.exe > nul 
+
+#### nginx 反向代理
+在window系统：   
+1. 找到nginx文件中的配置文件nginx.conf,用记事本打开
+2. 找到server配置，修改 location配置, 进行如下配置
+```
+ # 代理设置
+  location / {
+    proxy_pass http://localhost: 8001;
+  }
+  location /api/ {
+    proxy_pass http://localhost: 3000;
+    proxy_set_header Host $host;
+  }
+```
+详细讲解可查看[此博客](https://www.cnblogs.com/jiangwangxiang/p/8481661.html)
 
