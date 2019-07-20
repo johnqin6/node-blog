@@ -67,12 +67,13 @@ const serveHandle = (req, res) => {
   
   // 解析session
   let needSetCookie = false
+  // userId 用户的表示，方便session保存用户数据
   let userId = req.cookie.userId
-  if (userId) {
-    if (!SESSION_DATA[userId]) {
+  if (userId) { 
+    if (!SESSION_DATA[userId]) { // 如果session保存数据中不存在该userId的数据,就将该userId设置为空对象
       SESSION_DATA[userId] = {}
     } 
-  } else {
+  } else { // cookie中userId不存在就设置userId并将session数据添加以新增的userId的键
     needSetCookie = true
     userId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`
     SESSION_DATA[userId] = {}
@@ -87,7 +88,7 @@ const serveHandle = (req, res) => {
     const blogResult = handleBlogRouter(req, res)
     if (blogResult) {
       blogResult.then(blogData => {
-        if (needSetCookie) {
+        if (needSetCookie) { // 根据该变量判断是否设置cookie
           // 操作cookie httpOnly限制前端更改cookie
           res.setHeader('Set-Cookie', `userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()};`)
         }

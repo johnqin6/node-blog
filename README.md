@@ -95,10 +95,95 @@
 - server可以修改cookie并返回给浏览器
 - 浏览器中亦可以通过javascript修改cookie（有限制）
 
+cookie的使用
+
+```javascript
+// 设置cookie httpOnly限制前端更改cookie
+res.setHeader('Set-Cookie', `userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()};`)
+
+// 解析cookie
+  req.cookie = {}
+  const cookieStr = req.headers.cookie || ''
+  cookieStr.split(';').forEach(item => {
+    if (!item) {
+      return
+    }
+    const arr = item.split('=')
+    const key = arr[0].trim()
+    const val = arr[1]
+    req.cookie[key] = val
+  })
+
+// 获取cookie的过期时间
+const getCookieExpires = () => {
+  const d = new Date()
+  d.setTime(d.getTime() + (24 * 60 * 60 * 1000))
+  return d.toGMTString()
+}
+```
+
 ### session
 - 解决cookie存在的问题(cookie会暴漏username等私密信息, 很危险)
 - cookie中存储userid, server端对应username
-- session, 即server端存储用户信息
+- session(一种解决方案), 即server端存储用户信息
+
+#### 使用session是存在的问题
+- sesssion直接用js变量,会放在nodde.js进程中,这会产生一些问题
+  1. 进程内存有限，访问量过大，内存会暴增
+  2. 正式线上运行是多进程，进程之间内存无法共享
+
+- 解决方案 redis
+  + redis: web server 最常用的缓存数据库，数据放在内存中
+  + 相对于mysql，访问速度快（内存和硬盘不是一个数量级的）
+  + 但是成本更高，可存储的数据量更小（内存的硬伤）
+  + 将web server和redis拆分为两个单独的服务
+  + 双方都是独立的，都是可扩展的（例如都扩展为集群）
+  + 包含mysql 也是一个单独的服务，也可扩展
+
+#### 为何session适合用redis
+- session 访问频繁，对性能要求极高
+- session 可不考虑断电丢失数据的问题（内存的硬伤）
+- session 数据量不会太大 （相当于mysql中存储的数据）
+
+#### 为何网站数据不适合用redis
+- 操作频率不是太高（相当于session操作）
+- 断电不能丢失，必须保留
+- 数据量太大，内存成本太高
+
+session的使用
+
+```javascript
+// session 数据
+const SESSION_DATA = {}
+
+// 解析session
+  let needSetCookie = false
+  // userId 用户的表示，方便session保存用户数据
+  let userId = req.cookie.userId
+  if (userId) { 
+    if (!SESSION_DATA[userId]) { // 如果session保存数据中不存在该userId的数据,就将该userId设置为空对象
+      SESSION_DATA[userId] = {}
+    } 
+  } else { // cookie中userId不存在就设置userId并将session数据添加以新增的userId的键
+    needSetCookie = true
+    userId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    SESSION_DATA[userId] = {}
+  }
+  req.session = SESSION_DATA[userId]
+  
+  // 设置cookie
+  if (needSetCookie) { // 根据该变量判断是否设置cookie
+    // 操作cookie httpOnly限制前端更改cookie
+    res.setHeader('Set-Cookie', `userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()};`)
+  }
+
+  // 登录时根据数据库查询是否存在该用户来设置session
+  if (data.username) {
+    // 设置session
+    req.session.username = data.username
+    req.session.realname = data.realname
+  }
+```
 
 ## mysql操作的注意点
 操作数据库时一般不会真正删除数据，而是使用软删除，将该记录state设置为0 
