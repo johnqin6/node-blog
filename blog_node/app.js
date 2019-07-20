@@ -1,6 +1,7 @@
 const queryString = require('querystring')
 const handleBlogRouter = require('./src/router/blog.js')
 const handleUserRouter = require('./src/router/user.js')
+const { set, get } = require('../db/redis')
 
 // session 数据
 const SESSION_DATA = {}

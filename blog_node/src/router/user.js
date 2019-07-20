@@ -1,6 +1,6 @@
 const { register, login, deleteUser } = require('../controller/user')
 const { SuccessModel, ErrorModel } = require('../model/resModel')
-const { set, get } = require('../db/redis')
+const { set } = require('../db/redis')
 
 const handleUserRouter = (req, res) => {
   const method = req.method
