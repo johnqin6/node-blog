@@ -25,8 +25,16 @@ const handleUserRouter = (req, res) => {
     })
   }
 
-   // 注销用户
-   if (method === 'DELETE' && req.path === '/api/user/delete') {
+  // 登录验证的测试
+  if (method === 'GET' && req.path === '/api/user/login-test') {
+    if (req.cookie.username) {
+      return Promise.resolve(new SuccessModel())
+    }
+    return Promise.resolve(new ErrorModel('尚未登录'))
+  }
+
+  // 注销用户
+  if (method === 'DELETE' && req.path === '/api/user/delete') {
     const username = req.query.username
     const result = deleteUser(id, username)
     return result.then(res => {
