@@ -26,6 +26,11 @@ const getPostData = (req) => {
         resolve({})
         return
       }
+      if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
+        postData = postDataParse(postData)
+        resolve(postData)
+        return
+      }
       resolve(postData)
     })
   })
@@ -70,3 +75,17 @@ const serveHandle = (req, res) => {
 }
 
 module.exports = serveHandle
+
+/**
+ * 将post的string类型的数据解构为对象
+ * @param {*} str 
+ */
+function postDataParse(str) {
+  const arr = str.split('&');
+  let postDatas = {}
+  for (let i = 0; i < arr.length; i++) {
+    let _arr = arr[i].split('=')
+    postDatas[_arr[0]]= decodeURI(_arr[1])
+  }
+  return postDatas
+}
