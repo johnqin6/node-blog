@@ -56,7 +56,6 @@ const handleBlogRouter = (req, res) => {
         return new ErrorModel('更新博客失败！')
       }
     })
-    return 
   }
 
   // 删除一篇博客

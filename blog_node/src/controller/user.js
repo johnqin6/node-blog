@@ -1,10 +1,27 @@
+const { exec } = require('../db/mysql')
 /**
  * 注册用户
  * @param {Object} userData 新建的用户数据
  */
 const register = (userData = {}) => {
-  // blogData 是一个博客对象，包含title content 属性
-  return true
+  const username = userData.username
+  const password = userData.password
+  const realname = userData.realname
+  const sql = `select username from users where username='${username}'`
+
+  return exec(sql).then(rows => {
+    if (rows.length > 0) {
+      return {
+        message: '该用户已存在！'
+      }
+    }
+    const regSql = `
+      insert into users (username, password, realname) values ('${username}', '${password}', '${realname}')
+    `
+    return exec(regSql).then(res => {
+      return { id: res.insertId }
+    })
+  })
 }
 
 /**
@@ -13,20 +30,30 @@ const register = (userData = {}) => {
  * @param {*} password 
  */
 const login = (username, password) => {
-  console.log(username, password)
-  if (username === 'zhangsan' && password === '123') {
-    return true
-  } else {
-    return false
-  }
+  const sql = `
+    select username, realname from users where
+    username='${username}' and password='${password}'
+  `
+  return exec(sql).then(res => {
+    return res[0]
+  })
 }
 
 /**
  * 删除用户
  * @param {*} id 
  */
-const deleteUser = id => {
-  return true
+const deleteUser = (id, username) => {
+  // 软删除，只改变用户状态，不真正删除用户，方便恢复数据
+  const sql = `
+    update users set state=0 where id='${id}' and username='${username}'
+  `
+  return exec(sql).then(res => {
+    if (res.affectedRows > 0) {
+      return true
+    }
+    return false
+  })
 }
 
 module.exports = {
