@@ -2,6 +2,9 @@ const queryString = require('querystring')
 const handleBlogRouter = require('./src/router/blog.js')
 const handleUserRouter = require('./src/router/user.js')
 
+// session 数据
+const SESSION_DATA = {}
+
 // 用于处理 post数据
 const getPostData = (req) => {
   const promise = new Promise((resolve, reject) => {
@@ -57,12 +60,25 @@ const serveHandle = (req, res) => {
       return
     }
     const arr = item.split('=')
-    const key = arr[0]
+    const key = arr[0].trim()
     const val = arr[1]
     req.cookie[key] = val
   })
-  console.log('req.cookie is', req.cookie)
   
+  // 解析session
+  let needSetCookie = false
+  let userId = req.cookie.userId
+  if (userId) {
+    if (!SESSION_DATA[userId]) {
+      SESSION_DATA[userId] = {}
+    } 
+  } else {
+    needSetCookie = true
+    userId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    SESSION_DATA[userId] = {}
+  }
+  req.session = SESSION_DATA[userId]
+
   // 处理post数据
   getPostData(req).then(postData => {
     req.body = postData
@@ -71,6 +87,10 @@ const serveHandle = (req, res) => {
     const blogResult = handleBlogRouter(req, res)
     if (blogResult) {
       blogResult.then(blogData => {
+        if (needSetCookie) {
+          // 操作cookie httpOnly限制前端更改cookie
+          res.setHeader('Set-Cookie', `userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()};`)
+        }
         res.end(JSON.stringify(blogData))
       })
       return 
@@ -80,6 +100,10 @@ const serveHandle = (req, res) => {
     const userResult = handleUserRouter(req, res)
     if (userResult) {
       userResult.then(userData => {
+        if (needSetCookie) {
+          // 操作cookie httpOnly限制前端更改cookie
+          res.setHeader('Set-Cookie', `userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()};`)
+        }
         res.end(JSON.stringify(userData))
       })
       return
@@ -105,4 +129,11 @@ function postDataParse(str) {
     postDatas[_arr[0]]= decodeURI(_arr[1])
   }
   return postDatas
+}
+
+// 获取cookie的过期时间
+const getCookieExpires = () => {
+  const d = new Date()
+  d.setTime(d.getTime() + (24 * 60 * 60 * 1000))
+  return d.toGMTString()
 }

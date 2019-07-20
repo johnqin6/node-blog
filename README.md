@@ -95,6 +95,10 @@
 - server可以修改cookie并返回给浏览器
 - 浏览器中亦可以通过javascript修改cookie（有限制）
 
+### session
+- 解决cookie存在的问题(cookie会暴漏username等私密信息, 很危险)
+- cookie中存储userid, server端对应username
+- session, 即server端存储用户信息
 
 ## mysql操作的注意点
 操作数据库时一般不会真正删除数据，而是使用软删除，将该记录state设置为0 
