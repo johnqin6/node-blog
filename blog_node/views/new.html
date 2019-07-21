@@ -17,6 +17,24 @@
     <input type="text" id="title" placeholder="请输入标题">
   </p>
   <textarea id="content" cols="30" rows="10"></textarea>
-  <button>创建</button>
+  <button id="submit">创建</button>
 </body>
 </html>
+<script>
+  let title = $('#title')
+  let content = $('#content')
+  let submit = $('#submit')
+
+  const baseUrl = 'http://localhost:3000/'
+  const urlApi = baseUrl + 'api/blog/new'
+  
+  submit.click(() => {
+    $.post(urlApi, {
+      title: title.val(),
+      content: content.val()
+    },(data, status) => {
+      console.log(data, status)
+    })
+  })
+
+</script>

@@ -19,6 +19,24 @@
   <p>
     密码：<input type="password" id="password" placeholder="请输入密码">
   </p>
-  <button>登录</button>
+  <button id="submit">登录</button>
 </body>
 </html>
+<script>
+  let username = $('#username')
+  let password = $('#password')
+  let submit = $('#submit')
+
+  const baseUrl = 'http://localhost:3000/'
+  const urlApi = baseUrl + 'api/user/login'
+  
+  submit.click(() => {
+    $.post(urlApi, {
+      username: username.val(),
+      password: password.val()
+    },(data, status) => {
+      console.log(data, status)
+    })
+  })
+
+</script>

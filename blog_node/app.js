@@ -1,10 +1,12 @@
 const queryString = require('querystring')
 const handleBlogRouter = require('./src/router/blog.js')
 const handleUserRouter = require('./src/router/user.js')
-const { set, get } = require('../db/redis')
+const { set, get } = require('./src/db/redis')
+const { access } = require('./src/utils/log')
+const { SuccessModel, ErrorModel } = require('./src/model/resModel')
 
 // session 数据
-const SESSION_DATA = {}
+// const SESSION_DATA = {}
 
 // 用于处理 post数据
 const getPostData = (req) => {
@@ -30,12 +32,12 @@ const getPostData = (req) => {
         resolve({})
         return
       }
-      if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
+      if (req.headers['content-type'].indexOf('application/x-www-form-urlencoded') !== -1) {
         postData = postDataParse(postData)
         resolve(postData)
         return
       }
-      resolve(postData)
+      // resolve(postData)
     })
   })
   return promise
@@ -46,6 +48,8 @@ const serveHandle = (req, res) => {
   res.setHeader('Content-type', 'application/json')
   // process.env.NODE_ENV
   
+  // 记录 access log
+  access(`${req.method} -- ${req.url} -- ${req.headers['user-agent']} -- ${Date.now()}`)
   // 获取path
   const url = req.url
   req.path = url.split('?')[0]
@@ -70,16 +74,30 @@ const serveHandle = (req, res) => {
   let needSetCookie = false
   // userId 用户的表示，方便session保存用户数据
   let userId = req.cookie.userId
-  if (userId) { 
-    if (!SESSION_DATA[userId]) { // 如果session保存数据中不存在该userId的数据,就将该userId设置为空对象
-      SESSION_DATA[userId] = {}
-    } 
-  } else { // cookie中userId不存在就设置userId并将session数据添加以新增的userId的键
+  // if (userId) { 
+  //   if (!SESSION_DATA[userId]) { // 如果session保存数据中不存在该userId的数据,就将该userId设置为空对象
+  //     SESSION_DATA[userId] = {}
+  //   } 
+  // } else { // cookie中userId不存在就设置userId并将session数据添加以新增的userId的键
+  //   needSetCookie = true
+  //   userId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`
+  //   SESSION_DATA[userId] = {}
+  // }
+  // req.session = SESSION_DATA[userId]
+  if (userId) {
+    get(userId).then(result => {
+      if (result === null) {
+        set(userId, {})
+        return 
+      }
+      req.session = result
+    })
+  } else {
     needSetCookie = true
     userId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`
-    SESSION_DATA[userId] = {}
+    req.sessionId = userId
+    req.session = {}
   }
-  req.session = SESSION_DATA[userId]
 
   // 处理post数据
   getPostData(req).then(postData => {
@@ -95,7 +113,7 @@ const serveHandle = (req, res) => {
         }
         res.end(JSON.stringify(blogData))
       })
-      return 
+      return
     }
 
     // 处理user路由
@@ -109,7 +127,7 @@ const serveHandle = (req, res) => {
         res.end(JSON.stringify(userData))
       })
       return
-    }
+    } 
 
     // 未命中路由，返回404
     res.end("404 NOT Found\n")

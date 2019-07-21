@@ -261,9 +261,93 @@ SELECT * FROM users WHERE state='1';
 - 为何不存储到mysql中 (日志只是一行一行的记录，可能需要频繁拷贝，使用mysql反而不太好)
 - 运行速度：redis > mysql > 文件操作
 
-### IO操作的性能瓶颈
+#### IO操作的性能瓶颈
 - IO 包括‘网路IO’和‘文件IO’
 - 相当于CPU计算和内存读写，IO的突出特点就是：慢！
 - 如何在有限的硬件资源下提高IO的操作效率？ （stream）
 - stream: 通俗的说，就是在IO读取的过程中架设一个管道，实现数据的流动，来边读取边呈现，而不是一下子把所有数据全读取
   类似与看电影，边播放边加载，极大的节省了硬件资源，带宽
+
+#### 日志拆分
+- 日志内容会慢慢积累，放在一个文件中不好处理
+- 按时间划分日志文件, 如2019-02-10.access.log
+- 实现方式：linux的crontab命令,即定时任务
+
+##### crontab （多是运维处理）
+- 设置定时任务，格式：*****(分，时，日期，月份，星期)command 
+- 将access.log 拷贝并命名为2019-02-10.access.log
+- 清空access.log文件，继续积累日志
+
+示例脚本 
+```
+#!/bin/sh
+cd D:/johnqin/studySpace/node/node_blog/blog_node/logs
+cp access.log $(data +%Y-%m-%d).access.log
+echo "" > access.log
+```
+
+linux的crontab命令示例
+```
+> crontab -e 
+// 每天凌晨0点执行拆分日志
+* 0 * * * sh D:/johnqin/studySpace/node/node_blog/blog_node/src/utils/copy.sh
+```
+
+#### 日志分析
+- 如针对access.log日志，分析chrome的占比
+- 日志是按行存储的，一行就是一条日志
+- 使用node.js的readline（基于stream,效率高）分析日志
+
+### 安全
+- sql: 窃取数据库内容
+- XSS攻击：窃取前端的cookie内容
+- 密码加密：保障用户信息安全（重要！）
+- server端攻击方式非常多，预防手段也非常多
+- 本项目只涉及常见的，能通过web server(nodejs)层面预防的
+- 有些攻击需要硬件和服务来支持（需要OP支持），如DDOS
+
+#### sql注入
+- 最原始，最简单的攻击，从有了web2.0就有了sql注入攻击
+- 攻击方式：输入一个sql片段，最终拼接一段攻击代码
+- 预防措施：使用mysql的escape函数处理输入内容即可
+
+示例：sql注入示例
+如在用户名输入框输入`zhangsan' -- ` ,此时查询的sql语句变成了 
+`select * from users where state = 1 and username='zhangsan' -- ' and password='123'`
+这就会使后边的密码验证失效，
+
+- 预防sql注入
+使用mysql内置的escape方法将用户输入值处理一下,在执行sql
+
+```javascript
+username = mysql.escape(username)
+password = mysql.escape(password)
+
+const sql = `
+    select username, realname from users where
+    username=${username} and password=${password}
+  `
+// mysql.escape将sql语句处理后的sql语句
+select username, realname from users where
+    username='zhangsan\' --' and password='1'
+```
+
+### xss攻击
+- 前端需熟悉的攻击方式，但server端更应该掌握
+- 攻击方式: 在页面展示内容参杂js代码， 以获取网页信息
+- 预防措施：转换生成js的特殊字符
+
+- 攻击示例
+`<script>alert(document.cookie)</script>`
+
+- 预防方式：使用xss插件
+```javascript
+sonst xss = require('xss')
+const title = xss(title)   // 将输入的标题信息处理一下
+// 处理结果 --> &lt;script&gt;alert(document.cookie)$lt;/script&gt;
+```
+
+### 密码加密
+- 万一数据库被用户攻破，最不应该泄露的就是用户信息（特别是用户名和密码）
+- 攻击方式：获取用户名和密码，再去尝试登录其他系统
+- 预防措施：将密码加密，即便拿到密码也不知道明文

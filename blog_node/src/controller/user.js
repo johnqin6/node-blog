@@ -1,12 +1,15 @@
-const { exec } = require('../db/mysql')
+const { exec, escape } = require('../db/mysql')
+const { genPassword } = require('../utils/crypto')
 /**
  * 注册用户
  * @param {Object} userData 新建的用户数据
  */
 const register = (userData = {}) => {
   const username = userData.username
-  const password = userData.password
+  // 密码加密
+  const password = genPassword(userData.password)
   const realname = userData.realname
+
   const sql = `select username from users where username='${username}'`
 
   return exec(sql).then(rows => {
@@ -30,9 +33,13 @@ const register = (userData = {}) => {
  * @param {*} password 
  */
 const login = (username, password) => {
+  // 密码加密
+  password = genPassword(password)  
+  username = escape(username)
+  password = escape(password)
   const sql = `
     select username, realname from users where
-    username='${username}' and password='${password}'
+    username=${username} and password=${password}
   `
   return exec(sql).then(res => {
     return res[0]
