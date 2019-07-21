@@ -4,8 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 // 该插件处理日志
 var logger = require('morgan');
+const session = require('express-session')
+const RedisStore = require('connect-redis')(session)
 
-var indexRouter = require('./routes/index');
+// var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const blogRouter = require('./routes/blog')
 
@@ -19,11 +21,28 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+const redisClient = require('./db/redis')
+const sessionStrore = new RedisStore({
+  client: redisClient
+})
+app.use(session({
+  secret: 'Wjul#333',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    // path: '/',  // 默认配置
+    // httpOnly: true, // 默认配置
+    maxAge: 24 * 60 * 60 * 1000  // 设置失效时间
+  },
+  store: sessionStrore
+}))
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/blog', blogRouter);
+// app.use('/', indexRouter);
+app.use('/api/user', usersRouter);
+app.use('/api/blog', blogRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
