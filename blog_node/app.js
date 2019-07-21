@@ -84,23 +84,27 @@ const serveHandle = (req, res) => {
   //   SESSION_DATA[userId] = {}
   // }
   // req.session = SESSION_DATA[userId]
-  if (userId) {
-    get(userId).then(result => {
-      if (result === null) {
-        set(userId, {})
-        return 
-      }
-      req.session = result
-    })
-  } else {
+  if (!userId) {
     needSetCookie = true
     userId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`
-    req.sessionId = userId
-    req.session = {}
-  }
-
-  // 处理post数据
-  getPostData(req).then(postData => {
+    // 初始化 redis中的session值
+    set(userId, {})
+  } 
+  // 获取session
+  req.sessionId = userId
+  get(req.sessionId).then(sessionData => {
+    if (sessionData === null) {
+      // 初始化 redis中的session的值
+      set(req.sessionId, {})
+      // 设置session
+      req.session = {}
+    } else {
+      // 设置 session
+      req.session = sessionData
+    }
+    // 处理post数据
+    return getPostData(req)
+  }).then(postData => {
     req.body = postData
 
     // 处理blog路由
