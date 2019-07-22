@@ -17,8 +17,8 @@ function genPassword(password) {
 }
 
 // // 测试
-const result = genPassword('123')
-console.log(result)
+// const result = genPassword('123')
+// console.log(result)
 
 module.exports = {
   genPassword

@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 const { register, login, deleteUser } = require('../controller/user')
 const { SuccessModel, ErrorModel } = require('../model/resModel')
+const loginCheck = require('../middleware/loginCheck')
+
 /* GET users listing. */
 router.post('/login', function(req, res, next) {
   const { username, password } = req.body
@@ -19,18 +21,8 @@ router.post('/login', function(req, res, next) {
 });
 
 // 测试登录
-router.get('/login-test', (req, res, next) => {
+router.get('/login-test',loginCheck, (req, res, next) => {
   console.log(req.session)
-  if (req.session.username) {
-    res.json({
-      errno: 0,
-      msg: '已登录'
-    })
-  }
-  res.json({
-    errno: -1,
-    msg: '未登录'
-  })
 })
 
 // 测试session
