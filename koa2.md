@@ -11,3 +11,8 @@
 3. async 函数执行返回的也是一个promise对象
 4. try-catch 截获 promise中 reject的值
 
+## koa2 中间件原理  
+- app.use 用来注册中间件，先收集起来
+- 实现next机制，即上一个通过next触发下一个
+- 不涉及method和path的判断
+
