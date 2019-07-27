@@ -12,7 +12,7 @@ const loginCheck = require('../middleware/loginCheck')
 
 /* GET home page. */
 router.get('/list', function(req, res, next) {
-  const author = req.query.author || ''
+  let author = req.query.author || ''
   const keyword = req.query.keyword || ''
 
   if (req.query.isadmin) {
